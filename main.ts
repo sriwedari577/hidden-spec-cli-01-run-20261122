@@ -434,8 +434,16 @@ function unifiedEdit(s: Section, strict: boolean, moves: Array<[string, string]>
       const outLines: string[] = [];
       let noBreak = false;
       for (const h of s.hunks) {
-        for (const it of h.body) if (it.kind === 'new') outLines.push(it.text);
-        if (hunkNoBreak(h)) noBreak = true;
+        let lastNew = -1;
+        h.body.forEach((it, idx) => {
+          if (it.kind === 'new') { outLines.push(it.text); lastNew = idx; }
+        });
+        // SPEC.md section 6: a created file ends with a line break unless
+        // a `\` line follows its LAST `+` line. A mark after an earlier
+        // hunk must not drop the final break, so only the hunk holding
+        // the file's last `+` line decides, and only a mark right
+        // after that line counts; later hunks with `+` lines override.
+        if (lastNew >= 0) noBreak = h.body[lastNew + 1]?.kind === 'mark';
       }
       const f: FileState = { lines: outLines, br: '\n', ends: outLines.length > 0 && !noBreak };
       tree.now.set(target, serializeFile(f));
