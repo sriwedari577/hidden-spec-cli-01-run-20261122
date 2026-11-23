@@ -522,6 +522,7 @@ function parseSearchReplace(lines: string[], strict: boolean): Edit[] {
     for (let j = searchLine + 1; j < lines.length; j++) {
       const t = lines[j]!.trimEnd();
       if (sep < 0 && t === '=======') { sep = j; continue; }
+      if (sep < 0 && t === '>>>>>>> REPLACE') break;
       if (sep >= 0 && t === '>>>>>>> REPLACE') { end = j; break; }
     }
     if (sep < 0 || end < 0) throw new Exit2(`error: parse ${searchLine + 1}`);
